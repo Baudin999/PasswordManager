@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 
 [assembly: InternalsVisibleTo("Tests")]
 namespace CLI
@@ -149,5 +150,7 @@ namespace CLI
 
             return password;
         }
+        
+       
     }
 }
