@@ -8,7 +8,7 @@ namespace CLI
     internal static class Program
     {
 
-        private static JsonConfig? config;
+        private static JsonConfig config = new JsonConfig();
 
         internal static void Main(string[] args)
         {
@@ -22,7 +22,7 @@ namespace CLI
 
             // if the config is null, or if the config does not contain a location
             // prompt the user to give the location of where the passwords are stored.
-            if (config is null || string.IsNullOrWhiteSpace(config?.location.Trim()))
+            if (string.IsNullOrEmpty(config.location.Trim()))
             {
                 Console.WriteLine("What is the location of the encrypted files? ");
                 volumePath = Console.ReadLine() ?? "/Volumes/CKPWTEST";
@@ -30,7 +30,7 @@ namespace CLI
             }
             else
             {
-                volumePath = config?.location ??
+                volumePath = config.location ??
                              throw new Exception("Something went wrong reading the path form the configuration file");
             }
             // check if the volume path exists
@@ -65,7 +65,7 @@ namespace CLI
             foreach (var filePath in fileNames)
             {
                 var file = new FileInfo(filePath);
-                if (file.Extension == "da")
+                if (file.Extension == ".da")
                 {
                     Console.WriteLine(file.Name);
                 }
@@ -98,7 +98,7 @@ namespace CLI
             if (key is null || key.Length < 3) throw new Exception("Invalid key");
 
 
-            var username = config?.username ?? null;
+            var username = config.username ?? null;
             if (username is null)
             {
                 Console.Write("username: ");
@@ -111,7 +111,9 @@ namespace CLI
             if (password is null || password.Length < 3)
             {
                 Console.WriteLine("Generating strong password");
-                password = Security.GeneratePassword(8, true, true, true, true);
+                Random rnd = new Random();
+                var length = rnd.Next(config.minPasswordLength, config.maxPasswordLength + 1);
+                password = Security.GeneratePassword(length, true, true, true, true);
             }
 
             var salt = Security.GenerateRandomSalt();
@@ -123,6 +125,8 @@ namespace CLI
             var volumePath = location;
             var fileName = key + ".da";
             var filePath = Path.Combine(volumePath, fileName);
+            
+            if (File.Exists(filePath)) File.Delete(filePath);
             
             var encryptionKey = Security.DeriveKey(encryptionPassword, salt);
             var encryptedPassword = Security.Encrypt(password, encryptionKey, salt);

@@ -135,7 +135,9 @@ public static class Security
         {
             AddSpecialCharacters(password, special, parts[++partsIndex], rng);
         }
-        return password.ToString();
+        
+        // var result = 
+        return Helpers.ShuffleString(password.ToString());
     }
 
     static void AddLowercaseCharacters(StringBuilder password, string lowercase, int count, RandomNumberGenerator rng)

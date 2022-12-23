@@ -6,26 +6,26 @@ namespace CLI;
 
 public class Helpers
 {
-    internal static JsonConfig? GetConfiguration()
+    internal static JsonConfig GetConfiguration()
     {
         string fileName = ".ckpw";
         string homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         string filePath = Path.Combine(homeDirectory, fileName);
         string jsonString;
 
-        if (!File.Exists(filePath)) return null;
+        if (!File.Exists(filePath)) return new JsonConfig();
 
         try
         {
             using (StreamReader reader = new StreamReader(filePath))
             {
                 jsonString = reader.ReadToEnd();
-                return JsonSerializer.Deserialize<JsonConfig>(jsonString);
+                return JsonSerializer.Deserialize<JsonConfig>(jsonString) ?? new JsonConfig();
             }
         }
         catch (Exception)
         {
-            return null;
+            return new JsonConfig();
         }
     }
 
@@ -136,10 +136,31 @@ public class Helpers
         }
     }
     
+   internal  static string ShuffleString(string str)
+    {
+        RandomNumberGenerator rng = RandomNumberGenerator.Create();
+        var characters = str.ToCharArray();
+        // Shuffle the array using the Fisher-Yates shuffle algorithm
+        for (int i = str.Length - 1; i > 0; i--)
+        {
+            // Generate a random index
+            int j = GenerateRandomNumber(rng, 0, i);
+
+            // Swap the elements at indices i and j
+            
+            (characters[i], characters[j]) = (characters[j], characters[i]);
+        }
+
+        return new string(characters);
+    }
+    
 }
 
-public struct JsonConfig
+public class JsonConfig
 {
-    public string location { get; set; }
-    public string username { get; set; }
+    public string location { get; set; } = default!;
+    public string username { get; set; } = default!;
+
+    public int minPasswordLength { get; set; } = 20;
+    public int maxPasswordLength { get; set; } = 40;
 }
