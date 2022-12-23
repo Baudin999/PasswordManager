@@ -28,7 +28,7 @@ public class Helpers
         }
     }
 
-    internal static string ReadPasswordFromPrompt()
+    internal static string? ReadPasswordFromPrompt()
     {
         // Create a buffer to store the typed characters
         StringBuilder buffer = new StringBuilder();
@@ -69,7 +69,9 @@ public class Helpers
         
         Console.WriteLine();
 
-        return buffer.ToString();
+        var result = buffer.ToString();
+        if (result.Length == 0) return null;
+        else return result;
     }
 }
 

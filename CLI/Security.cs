@@ -1,8 +1,9 @@
 using System.Security.Cryptography;
+using System.Text;
 
 namespace CLI;
 
-public class Security
+public static class Security
 {
         internal static byte[] DeriveKey(string password, byte[] salt)
         {
@@ -86,5 +87,81 @@ public class Security
                 offset += array.Length;
             }
             return result;
+        }
+        
+        
+        internal static string GeneratePassword(int length, bool includeLowercase, bool includeUppercase, bool includeNumeric, bool includeSpecial)
+        {
+            const string lowercase = "abcdefghijklmnopqrstuvwxyz";
+            const string uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const string numeric = "0123456789";
+            const string special = @"!@#$%^&*()_+-=[]{}|;""':,.<>?";
+
+            // Use a random number generator to select a random character from each allowed character set
+            RandomNumberGenerator rng = RandomNumberGenerator.Create();
+            StringBuilder password = new StringBuilder();
+            byte[] uintBuffer = new byte[4];
+
+            // Include lowercase characters
+            if (includeLowercase)
+            {
+                int charCount = lowercase.Length;
+                for (int i = 0; i < length; i++)
+                {
+                    rng.GetBytes(uintBuffer);
+                    uint num = BitConverter.ToUInt32(uintBuffer, 0);
+                    password.Append(lowercase[(int)(num % (uint)charCount)]);
+                }
+            }
+
+            // Include uppercase characters
+            if (includeUppercase)
+            {
+                int charCount = uppercase.Length;
+                for (int i = 0; i < length; i++)
+                {
+                    rng.GetBytes(uintBuffer);
+                    uint num = BitConverter.ToUInt32(uintBuffer, 0);
+                    password.Append(uppercase[(int)(num % (uint)charCount)]);
+                }
+            }
+
+            // Include numeric characters
+            if (includeNumeric)
+            {
+                int charCount = numeric.Length;
+                for (int i = 0; i < length; i++)
+                {
+                    rng.GetBytes(uintBuffer);
+                    uint num = BitConverter.ToUInt32(uintBuffer, 0);
+                    password.Append(numeric[(int)(num % (uint)charCount)]);
+                }
+            }
+
+            // Include special characters
+            if (includeSpecial)
+            {
+                int charCount = special.Length;
+                for (int i = 0; i < length; i++)
+                {
+                    rng.GetBytes(uintBuffer);
+                    uint num = BitConverter.ToUInt32(uintBuffer, 0);
+                    password.Append(special[(int)(num % (uint)charCount)]);
+                }
+            }
+
+            // Shuffle the password to increase randomness
+            char[] passwordChars = password.ToString().ToCharArray();
+            int passwordLength = passwordChars.Length;
+            for (int i = 0; i < passwordLength; i++)
+            {
+                rng.GetBytes(uintBuffer);
+                uint j = BitConverter.ToUInt32(uintBuffer, 0);
+                int swapIndex = (int)(j % (uint)passwordLength);
+                char temp = passwordChars[i];
+                passwordChars[i] = passwordChars[swapIndex];
+                passwordChars[swapIndex] = temp;
+            }
+            return new string(passwordChars);
         }
 }

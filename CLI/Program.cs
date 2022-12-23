@@ -4,30 +4,36 @@
 namespace CLI
 {
     
-    internal class Program
+    internal static class Program
     {
+
+        private static JsonConfig? config;
 
         internal static void Main(string[] args)
         {
-            var _location = "";
+            // the volumePath is the location where the passwords are stored,
+            // I personally prefer a USB drive, but it can easily be a 
+            // encrypted part of your hard-drive.
+            var volumePath = "";
             
             // load the configuration from the home directory
-            var config = Helpers.GetConfiguration();
+            config = Helpers.GetConfiguration();
 
             // if the config is null, or if the config does not contain a location
             // prompt the user to give the location of where the passwords are stored.
             if (config is null || string.IsNullOrWhiteSpace(config?.location.Trim()))
             {
                 Console.WriteLine("What is the location of the encrypted files? ");
-                _location = Console.ReadLine() ?? "/Volumes/CKPWTEST";
-                if (_location.Length == 0) _location = "/Volumes/CKPWTEST";
-                if (!Directory.Exists(_location)) throw new Exception("Location does not exist");
-
+                volumePath = Console.ReadLine() ?? "/Volumes/CKPWTEST";
+                if (volumePath.Length == 0) volumePath = "/Volumes/CKPWTEST";
             }
             else
             {
-                _location = config?.location;
+                volumePath = config?.location ??
+                             throw new Exception("Something went wrong reading the path form the configuration file");
             }
+            // check if the volume path exists
+            if (!Directory.Exists(volumePath)) throw new Exception("Location does not exist");
 
             // promt the user for what they want
             Console.WriteLine("Read or Write? ");
@@ -36,13 +42,13 @@ namespace CLI
             switch (response)
             {
                 case "read":
-                    ReadPassword(_location);
+                    ReadPassword(volumePath);
                     break;
                 case "write":
-                    WriteNewPassword(_location);
+                    WriteNewPassword(volumePath);
                     break;
                 case "keys":
-                    RetrieveKeys(_location);
+                    RetrieveKeys(volumePath);
                     break;
             }
         }
@@ -89,14 +95,23 @@ namespace CLI
             Console.Write("Key: ");
             var key = Console.ReadLine()?.Trim();
             if (key is null || key.Length < 3) throw new Exception("Invalid key");
-            
-            Console.Write("username: ");
-            var username = Console.ReadLine()?.Trim();
-            if (username is null || username.Length < 3) throw new Exception("Invalid username");
-            
-            Console.Write("Password: ");
-            var password = Helpers.ReadPasswordFromPrompt(); //Console.ReadLine()?.Trim();
-            if (password is null || password.Length < 3) throw new Exception("Invalid password");
+
+
+            var username = config?.username ?? null;
+            if (username is null)
+            {
+                Console.Write("username: ");
+                username = Console.ReadLine()?.Trim();
+                if (username is null || username.Length < 3) throw new Exception("Invalid username");
+            }
+
+            Console.Write("Password (leave empty to generate): ");
+            var password = Helpers.ReadPasswordFromPrompt();
+            if (password is null || password.Length < 3)
+            {
+                Console.WriteLine("Generating strong password");
+                password = Security.GeneratePassword(8, true, true, true, true);
+            }
 
             var salt = Security.GenerateRandomSalt();
             SavePasswordToFile(location, encryptionPw, key, password, salt);
