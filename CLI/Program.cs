@@ -54,7 +54,7 @@ namespace CLI
             }
         }
 
-        internal static void RetrieveKeys(string location)
+        private static void RetrieveKeys(string location)
         {
             var fileNames = Directory.GetFiles(location);
             if (fileNames.Length == 0)
@@ -72,7 +72,7 @@ namespace CLI
             }
         }
 
-        internal static void ReadPassword(string location)
+        private static void ReadPassword(string location)
         {
             Console.Write("Encryption Password: ");
             var encryptionPw = Helpers.ReadPasswordFromPrompt();// Console.ReadLine()?.Trim();
@@ -87,7 +87,7 @@ namespace CLI
             Console.WriteLine(pw);
         }
 
-        internal static void WriteNewPassword(string location)
+        private static void WriteNewPassword(string location)
         {
             Console.Write("Encryption Password: ");
             var encryptionPw = Helpers.ReadPasswordFromPrompt(); //Console.ReadLine()?.Trim();
@@ -120,7 +120,7 @@ namespace CLI
             SavePasswordToFile(location, encryptionPw, key, password, salt);
         }
 
-        internal static void SavePasswordToFile(string location, string encryptionPassword, string key, string password, byte[] salt)
+        private static void SavePasswordToFile(string location, string encryptionPassword, string key, string password, byte[] salt)
         {
             var volumePath = location;
             var fileName = key + ".da";
@@ -139,7 +139,7 @@ namespace CLI
             }
         }
 
-        internal static string ReadPasswordFromFile(string location, string encryptionPassword, string key)
+        private static string ReadPasswordFromFile(string location, string encryptionPassword, string key)
         {
             var volumePath = location;
             var fileName = key + ".da";
